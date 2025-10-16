@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UniFlex API Test</title>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif;max-width:760px;margin:20px auto;padding:0 12px}
+    input,button{padding:8px;margin:4px 0} pre{background:#f6f8fa;padding:10px;overflow:auto}
+  </style>
+</head>
+<body>
+  <h1>UniFlex API Test</h1>
+
+  <h3>Login</h3>
+  <input id="email" placeholder="email" value="student@uniflex.test" />
+  <input id="password" type="password" placeholder="парола" value="Stud!234" />
+  <button onclick="login()">Влез</button>
+
+  <h3>Резултат</h3>
+  <pre id="out">{}</pre>
+
+  <h3>Действия</h3>
+  <button onclick="me()">/api/me</button>
+  <button onclick="logout()">/api/logout</button>
+
+<script>
+let TOKEN = null;
+const out = (x)=>document.getElementById('out').textContent =
+  typeof x === 'string' ? x : JSON.stringify(x,null,2);
+
+async function login(){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
+  try{
+    const r = await fetch('/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email,password})
+    });
+    const data = await r.json();
+    if(!r.ok) throw new Error(data.message || 'Login error');
+    TOKEN = data.token; out(data);
+  }catch(e){ out('❌ ' + e.message); }
+}
+
+async function me(){
+  try{
+    const r = await fetch('/api/me', { headers:{'Authorization':'Bearer '+TOKEN}});
+    out(await r.json());
+  }catch(e){ out('❌ ' + e.message); }
+}
+
+async function logout(){
+  try{
+    const r = await fetch('/api/logout', { method:'POST', headers:{'Authorization':'Bearer '+TOKEN}});
+    out(await r.json()); TOKEN = null;
+  }catch(e){ out('❌ ' + e.message); }
+}
+</script>
+</body>
+</html>
